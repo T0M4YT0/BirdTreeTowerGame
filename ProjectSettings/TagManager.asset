@@ -4,6 +4,9 @@
 TagManager:
   serializedVersion: 3
   tags:
+  - Obstacle
+  - Fog
+  - ScoreZone
   - Wall
   layers:
   - Default
@@ -41,6 +44,18 @@ TagManager:
   m_SortingLayers:
   - name: Default
     uniqueID: 0
+    locked: 0
+  - name: Background
+    uniqueID: 2232983051
+    locked: 0
+  - name: Obstacles
+    uniqueID: 1495701275
+    locked: 0
+  - name: Player
+    uniqueID: 2037697435
+    locked: 0
+  - name: Foreground
+    uniqueID: 1418424373
     locked: 0
   m_RenderingLayers:
   - Default
