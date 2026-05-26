@@ -1,12 +1,13 @@
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.InputSystem;
 
 public class GameManager : MonoBehaviour
 {
     public enum State { Title, Playing, Dead }
 
     [Header("References")]
-    [SerializeField] private PlayerController player;
+    [SerializeField] private PLayerMovement player;
     [SerializeField] private ObstacleSpawner spawner;
     [SerializeField] private FogWall fog;
     [SerializeField] private CameraFollow cam;
@@ -18,9 +19,12 @@ public class GameManager : MonoBehaviour
     [Header("Settings")]
     [SerializeField] private Vector3 playerStart = new Vector3(0f, 2f, 0f);
     [SerializeField] private float cameraStartY = 10f;
+    [SerializeField] private float playerGravityScale = 1f;
 
     private State state;
     private int highScore;
+
+    public State CurrentState => state;
 
     private void Start()
     {
@@ -33,7 +37,7 @@ public class GameManager : MonoBehaviour
         switch (state)
         {
             case State.Title:
-                if (FlapPressed())
+                if (AnyButtonPressed())
                     StartGame();
                 break;
 
@@ -45,7 +49,7 @@ public class GameManager : MonoBehaviour
                 break;
 
             case State.Dead:
-                if (Input.GetKeyDown(KeyCode.R))
+                if (RestartPressed())
                     GoToTitle();
                 break;
         }
@@ -54,19 +58,19 @@ public class GameManager : MonoBehaviour
     private void GoToTitle()
     {
         state = State.Title;
-        player.ResetBird(playerStart);
+        player.ResetPlayer(playerStart, playerGravityScale);
         spawner.ResetAll();
         fog.ResetFog();
         cam.ResetCamera(cameraStartY);
 
-        SetUI("BIRDUP\n\nTap to start", false);
+        SetUI("BIRDUP\n\nPress X to start", false);
     }
 
     private void StartGame()
     {
         state = State.Playing;
+        player.Unfreeze(playerGravityScale);
         fog.Activate();
-        player.Flap(); // first flap to get going
 
         SetUI("", true);
     }
@@ -85,7 +89,7 @@ public class GameManager : MonoBehaviour
             + "Score: " + score + "\n"
             + "Height: " + player.HighestY.ToString("F0") + "m\n"
             + "Best: " + highScore + "\n\n"
-            + "Press R to retry";
+            + "Press OPTIONS to retry";
 
         SetUI(msg, true);
     }
@@ -101,11 +105,41 @@ public class GameManager : MonoBehaviour
             scoreText.gameObject.SetActive(showScore);
     }
 
-    private bool FlapPressed()
+    private bool AnyButtonPressed()
     {
-        return Input.GetKeyDown(KeyCode.Space)
-            || Input.GetMouseButtonDown(0)
-            || Input.GetKeyDown(KeyCode.UpArrow)
-            || Input.GetKeyDown(KeyCode.W);
+        if (Keyboard.current != null && Keyboard.current.anyKey.wasPressedThisFrame)
+            return true;
+        if (Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame)
+            return true;
+
+        var gp = Gamepad.current;
+        if (gp != null)
+        {
+            if (gp.buttonSouth.wasPressedThisFrame) return true;
+            if (gp.buttonWest.wasPressedThisFrame) return true;
+            if (gp.buttonEast.wasPressedThisFrame) return true;
+            if (gp.buttonNorth.wasPressedThisFrame) return true;
+            if (gp.startButton.wasPressedThisFrame) return true;
+        }
+
+        return false;
+    }
+
+    private bool RestartPressed()
+    {
+        if (Keyboard.current != null)
+        {
+            if (Keyboard.current.rKey.wasPressedThisFrame) return true;
+            if (Keyboard.current.spaceKey.wasPressedThisFrame) return true;
+        }
+
+        var gp = Gamepad.current;
+        if (gp != null)
+        {
+            if (gp.startButton.wasPressedThisFrame) return true;
+            if (gp.buttonSouth.wasPressedThisFrame) return true;
+        }
+
+        return false;
     }
 }

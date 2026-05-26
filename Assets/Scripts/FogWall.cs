@@ -10,22 +10,21 @@ public class FogWall : MonoBehaviour
 
     private float currentSpeed;
     private bool active;
-    private SpriteRenderer sr;
 
     private void Start()
     {
-        // Build visual
+        // Build fog visual
         GameObject visual = new GameObject("FogVisual");
         visual.transform.SetParent(transform);
         visual.transform.localPosition = new Vector3(0f, -15f, 0f);
         visual.transform.localScale = new Vector3(12f, 30f, 1f);
 
-        sr = visual.AddComponent<SpriteRenderer>();
+        SpriteRenderer sr = visual.AddComponent<SpriteRenderer>();
         sr.sprite = ObstacleSpawner.GetSquare();
         sr.color = fogColour;
         sr.sortingLayerName = "Foreground";
 
-        // Trigger on top edge
+        // Trigger collider on top edge
         BoxCollider2D col = gameObject.AddComponent<BoxCollider2D>();
         col.size = new Vector2(12f, 0.3f);
         col.isTrigger = true;

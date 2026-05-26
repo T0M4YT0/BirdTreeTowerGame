@@ -10,9 +10,7 @@ public class ObstacleSpawner : MonoBehaviour
     [SerializeField] private float spawnAhead = 30f;
     [SerializeField] private float despawnBelow = 20f;
 
-    [Header("Gap (horizontal)")]
-    [SerializeField] private float gapWidth = 1.4f;        // how wide the gap is
-    [SerializeField] private float minGapWidth = 0.7f;
+    [Header("Difficulty")]
     [SerializeField] private float difficultyRampHeight = 200f;
 
     [Header("Bar")]
@@ -27,7 +25,7 @@ public class ObstacleSpawner : MonoBehaviour
     [SerializeField] private Color spaceColour = new Color(0.5f, 0.7f, 0.9f);
 
     private float nextSpawnY;
-
+    private bool lastFromLeft = false;
     private static Sprite _square;
 
     private void Start()
@@ -52,16 +50,16 @@ public class ObstacleSpawner : MonoBehaviour
     private void SpawnObstacle(float y)
     {
         float progress = Mathf.Clamp01(y / difficultyRampHeight);
-        float gap = Mathf.Lerp(gapWidth, minGapWidth, progress);
         float fullWidth = playAreaHalfWidth * 2f;
 
-        // Random gap centre position (horizontal)
-        float minGapX = -playAreaHalfWidth + gap / 2f + 0.05f;
-        float maxGapX = playAreaHalfWidth - gap / 2f - 0.05f;
-        float gapCentreX = Random.Range(minGapX, maxGapX);
+        // Ledge covers between 40% and 70% of the width as difficulty ramps
+        float minCoverage = Mathf.Lerp(0.4f, 0.55f, progress);
+        float maxCoverage = Mathf.Lerp(0.55f, 0.75f, progress);
+        float ledgeWidth = fullWidth * Random.Range(minCoverage, maxCoverage);
 
-        float gapLeft = gapCentreX - gap / 2f;
-        float gapRight = gapCentreX + gap / 2f;
+        // Alternate sides: left, right, left, right...
+        bool fromLeft = !lastFromLeft;
+        lastFromLeft = fromLeft;
 
         Color colour = GetBiomeColour(y);
 
@@ -69,29 +67,30 @@ public class ObstacleSpawner : MonoBehaviour
         GameObject obstacle = new GameObject("Obstacle");
         obstacle.transform.position = new Vector3(0f, y, 0f);
 
-        // Left block: left wall to gap left edge
-        float leftWidth = gapLeft - (-playAreaHalfWidth);
-        if (leftWidth > 0.02f)
+        float cx;
+        if (fromLeft)
         {
-            float centreX = -playAreaHalfWidth + leftWidth / 2f;
-            CreateBlock(obstacle.transform, centreX, y, leftWidth, colour);
+            cx = -playAreaHalfWidth + ledgeWidth / 2f;
+        }
+        else
+        {
+            cx = playAreaHalfWidth - ledgeWidth / 2f;
         }
 
-        // Right block: gap right edge to right wall
-        float rightWidth = playAreaHalfWidth - gapRight;
-        if (rightWidth > 0.02f)
-        {
-            float centreX = gapRight + rightWidth / 2f;
-            CreateBlock(obstacle.transform, centreX, y, rightWidth, colour);
-        }
+        CreateBlock(obstacle.transform, cx, y, ledgeWidth, colour);
 
-        // Score trigger in the gap
+        // Score trigger on the open side
+        float openWidth = fullWidth - ledgeWidth;
+        float scoreCx = fromLeft
+            ? playAreaHalfWidth - openWidth / 2f
+            : -playAreaHalfWidth + openWidth / 2f;
+
         GameObject scoreTrigger = new GameObject("ScoreZone");
         scoreTrigger.tag = "ScoreZone";
         scoreTrigger.transform.SetParent(obstacle.transform);
-        scoreTrigger.transform.position = new Vector3(gapCentreX, y, 0f);
+        scoreTrigger.transform.position = new Vector3(scoreCx, y, 0f);
         BoxCollider2D scoreCol = scoreTrigger.AddComponent<BoxCollider2D>();
-        scoreCol.size = new Vector2(gap * 0.5f, barThickness);
+        scoreCol.size = new Vector2(openWidth * 0.5f, barThickness);
         scoreCol.isTrigger = true;
     }
 
@@ -148,6 +147,7 @@ public class ObstacleSpawner : MonoBehaviour
         foreach (GameObject obj in GameObject.FindGameObjectsWithTag("ScoreZone"))
             Destroy(obj);
         nextSpawnY = 10f;
+        lastFromLeft = false;
     }
 
     public static Sprite GetSquare()

@@ -5,7 +5,6 @@ public class BiomeBackground : MonoBehaviour
     [SerializeField] private Camera cam;
     [SerializeField] private Transform player;
 
-    // Biome colours
     private static readonly Color city  = new Color(0.12f, 0.12f, 0.18f);
     private static readonly Color trees = new Color(0.08f, 0.22f, 0.08f);
     private static readonly Color sky   = new Color(0.3f, 0.5f, 0.8f);
@@ -26,7 +25,6 @@ public class BiomeBackground : MonoBehaviour
         if (player == null || cam == null) return;
         float alt = player.position.y;
 
-        // Find current biome pair and blend
         for (int i = biomes.Length - 1; i >= 0; i--)
         {
             if (alt >= biomes[i].start)
