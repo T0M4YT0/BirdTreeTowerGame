@@ -215,7 +215,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!61 &383858612
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -381,12 +381,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ObstacleSpawner
   player: {fileID: 890109900}
-  obstacleSpacing: 5.7
+  playAreaHalfWidth: 1.905
+  platformThickness: 0.35
+  wallThickness: 1
+  wallSegCount: 30
+  wallSegH: 2
+  platformSpacing: 5
   spawnAhead: 30
   despawnBelow: 20
   difficultyRampHeight: 200
-  playAreaHalfWidth: 1.905
-  barThickness: 0.35
   cityColour: {r: 0.35, g: 0.35, b: 0.4, a: 1}
   treesColour: {r: 0.2, g: 0.45, b: 0.15, a: 1}
   skyColour: {r: 0.6, g: 0.65, b: 0.75, a: 1}
@@ -1380,7 +1383,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!212 &1793522081
 SpriteRenderer:
   serializedVersion: 2

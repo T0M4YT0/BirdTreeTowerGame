@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 public class ObstacleSpawner : MonoBehaviour
@@ -5,17 +6,22 @@ public class ObstacleSpawner : MonoBehaviour
     [Header("References")]
     [SerializeField] private Transform player;
 
+    [Header("Play Area")]
+    [SerializeField] private float playAreaHalfWidth = 1.905f;
+
+    [Header("walls and platform settings")]
+    [SerializeField] private float platformThickness = 0.35f;
+    [SerializeField] private float wallThickness = 0.35f;
+    [SerializeField] private int wallSegCount = 20;
+    [SerializeField] private float wallSegH;
+
     [Header("Spawning")]
-    [SerializeField] private float obstacleSpacing = 5f;
+    [SerializeField] private float platformSpacing = 5f;
     [SerializeField] private float spawnAhead = 30f;
     [SerializeField] private float despawnBelow = 20f;
 
     [Header("Difficulty")]
     [SerializeField] private float difficultyRampHeight = 200f;
-
-    [Header("Bar")]
-    [SerializeField] private float playAreaHalfWidth = 1.905f;
-    [SerializeField] private float barThickness = 0.35f;
 
     [Header("Biome Colours")]
     [SerializeField] private Color cityColour = new Color(0.35f, 0.35f, 0.4f);
@@ -24,93 +30,162 @@ public class ObstacleSpawner : MonoBehaviour
     [SerializeField] private Color stormColour = new Color(0.25f, 0.22f, 0.3f);
     [SerializeField] private Color spaceColour = new Color(0.5f, 0.7f, 0.9f);
 
+    //two segments per side
+    private GameObject[] leftSegs, rightSegs;
+    private SpriteRenderer[] leftSRs, rightSRs;
+
     private float nextSpawnY;
-    private bool lastFromLeft = false;
+    private readonly List<GameObject> platforms = new List<GameObject>();
+
     private static Sprite _square;
 
     private void Start()
     {
         nextSpawnY = 10f;
+        BuildWalls();
     }
 
     private void Update()
     {
         if (player == null) return;
 
+        //keep spawning until filled up to spawn ahead dist
         float ceiling = player.position.y + spawnAhead;
         while (nextSpawnY < ceiling)
         {
-            SpawnObstacle(nextSpawnY);
-            nextSpawnY += obstacleSpacing;
+            SpawnPlatform(nextSpawnY);
+            nextSpawnY += platformSpacing;
         }
 
-        Cleanup();
+        //resue wall segments
+        UpdateWalls();
+
+        //destroy platforms far enough below player
+        float destroyBelow = player.position.y - despawnBelow;
+        for (int i = platforms.Count - 1; i >= 0; i--)
+        {
+            if (platforms[i] == null || platforms[i].transform.position.y < destroyBelow)
+            {
+                if (platforms[i] != null) Destroy(platforms[i]);
+                platforms.RemoveAt(i);
+            }
+        }
     }
 
-    private void SpawnObstacle(float y)
+    //walls
+    private void BuildWalls()
+    {
+        leftSegs = new GameObject[wallSegCount];
+        rightSegs = new GameObject[wallSegCount];
+        leftSRs = new SpriteRenderer[wallSegCount];
+        rightSRs = new SpriteRenderer[wallSegCount];
+
+        float lx = -(playAreaHalfWidth + wallThickness * 0.5f);
+        float rx = (playAreaHalfWidth + wallThickness * 0.5f);
+
+        for (int i = 0; i < wallSegCount; i++)
+        {
+            float y = i * wallSegH;
+            leftSegs[i] = MakeWallSeg("WallL_" + i, lx, y);
+            leftSegs[i].tag = "Wall";
+            rightSegs[i] = MakeWallSeg("WallR_" + i, rx, y);
+            rightSegs[i].tag = "Wall";
+            leftSRs[i] = leftSegs[i].GetComponent<SpriteRenderer>();
+            rightSRs[i] = rightSegs[i].GetComponent<SpriteRenderer>();
+        }
+    }
+
+    private GameObject MakeWallSeg(string name, float x, float y)
+    {
+        GameObject go = new GameObject(name);
+        go.transform.position = new Vector3(x, y, 0f);
+        go.transform.localScale = new Vector3(wallThickness, wallSegH, 1f);
+
+        var sr = go.AddComponent<SpriteRenderer>();
+        sr.sprite = GetSquare();
+        sr.color = cityColour;
+        sr.sortingLayerName = "Obstacles";
+
+        var col = go.AddComponent<BoxCollider2D>();
+        col.size = Vector2.one;
+
+        return go;
+    }
+
+    private void UpdateWalls()
+    {
+        for (int i = 0; i < wallSegCount; i++)
+        {
+            ScrollSeg(leftSegs[i], leftSRs[i]);
+            ScrollSeg(rightSegs[i], rightSRs[i]);
+        }
+    }
+
+    private void ScrollSeg(GameObject seg, SpriteRenderer sr)
+    {
+        //reset to top of stack when drops below
+        float top = seg.transform.position.y + wallSegH * 0.5f;
+        if (top < player.position.y - despawnBelow)
+        {
+            seg.transform.position = new Vector3(seg.transform.position.x, seg.transform.position.y + wallSegH * wallSegCount, 0f);
+
+            //update physics
+            Physics2D.SyncTransforms();
+        }
+
+        //recolour to match biome
+        sr.color = GetBiomeColour(seg.transform.position.y);
+    }
+
+    //platforms
+    private void SpawnPlatform(float y)
     {
         float progress = Mathf.Clamp01(y / difficultyRampHeight);
-        float fullWidth = playAreaHalfWidth * 2f;
 
-        // Ledge covers between 40% and 70% of the width as difficulty ramps
-        float minCoverage = Mathf.Lerp(0.4f, 0.55f, progress);
-        float maxCoverage = Mathf.Lerp(0.55f, 0.75f, progress);
-        float ledgeWidth = fullWidth * Random.Range(minCoverage, maxCoverage);
+        //randomly pick a side
+        bool fromLeft = Random.value < 0.5f;
 
-        // Alternate sides: left, right, left, right...
-        bool fromLeft = !lastFromLeft;
-        lastFromLeft = fromLeft;
+        //wider platforms as difficulty increases
+        float minW = Mathf.Lerp(0.4f, 0.6f, progress) * playAreaHalfWidth;
+        float maxW = Mathf.Lerp(0.6f, 0.9f, progress) * playAreaHalfWidth;
+        float w = Random.Range(minW, maxW);
+
+        //platform flush to chosen wall
+        float x = fromLeft ? -playAreaHalfWidth + w * 0.5f : playAreaHalfWidth - w * 0.5f;
 
         Color colour = GetBiomeColour(y);
 
-        // Parent
-        GameObject obstacle = new GameObject("Obstacle");
-        obstacle.transform.position = new Vector3(0f, y, 0f);
+        GameObject p = new GameObject("Platform");
+        p.transform.position = new Vector3(x, y, 0f);
+        p.transform.localScale = new Vector3(w, platformThickness, 1f);
+        p.tag = "Obstacle";
 
-        float cx;
-        if (fromLeft)
-        {
-            cx = -playAreaHalfWidth + ledgeWidth / 2f;
-        }
-        else
-        {
-            cx = playAreaHalfWidth - ledgeWidth / 2f;
-        }
-
-        CreateBlock(obstacle.transform, cx, y, ledgeWidth, colour);
-
-        // Score trigger on the open side
-        float openWidth = fullWidth - ledgeWidth;
-        float scoreCx = fromLeft
-            ? playAreaHalfWidth - openWidth / 2f
-            : -playAreaHalfWidth + openWidth / 2f;
-
-        GameObject scoreTrigger = new GameObject("ScoreZone");
-        scoreTrigger.tag = "ScoreZone";
-        scoreTrigger.transform.SetParent(obstacle.transform);
-        scoreTrigger.transform.position = new Vector3(scoreCx, y, 0f);
-        BoxCollider2D scoreCol = scoreTrigger.AddComponent<BoxCollider2D>();
-        scoreCol.size = new Vector2(openWidth * 0.5f, barThickness);
-        scoreCol.isTrigger = true;
-    }
-
-    private void CreateBlock(Transform parent, float x, float y, float width, Color colour)
-    {
-        GameObject block = new GameObject("Block");
-        block.transform.SetParent(parent);
-        block.transform.position = new Vector3(x, y, 0f);
-        block.transform.localScale = new Vector3(width, barThickness, 1f);
-        block.tag = "Obstacle";
-
-        SpriteRenderer sr = block.AddComponent<SpriteRenderer>();
+        var sr = p.AddComponent<SpriteRenderer>();
         sr.sprite = GetSquare();
         sr.color = colour;
         sr.sortingLayerName = "Obstacles";
 
-        BoxCollider2D col = block.AddComponent<BoxCollider2D>();
+        var col = p.AddComponent<BoxCollider2D>();
         col.size = Vector2.one;
+
+        // score zone sits in the open gap beside the platform
+        float gapW = playAreaHalfWidth * 2f - w;
+        float gapX = fromLeft
+            ? playAreaHalfWidth - gapW * 0.5f
+            : -playAreaHalfWidth + gapW * 0.5f;
+
+        GameObject zone = new GameObject("ScoreZone");
+        zone.tag = "ScoreZone";
+        zone.transform.SetParent(p.transform, true);
+        zone.transform.position = new Vector3(gapX, y, 0f);
+        var zCol = zone.AddComponent<BoxCollider2D>();
+        zCol.size = new Vector2(gapW * 0.8f, platformThickness);
+        zCol.isTrigger = true;
+
+        platforms.Add(p);
     }
 
+    //biome colour
     private Color GetBiomeColour(float alt)
     {
         if (alt < 30f) return cityColour;
@@ -124,32 +199,29 @@ public class ObstacleSpawner : MonoBehaviour
         return spaceColour;
     }
 
-    private void Cleanup()
-    {
-        float destroyBelow = player.position.y - despawnBelow;
-        foreach (GameObject obj in GameObject.FindGameObjectsWithTag("Obstacle"))
-        {
-            if (obj.transform.parent == null && obj.name == "Obstacle"
-                && obj.transform.position.y < destroyBelow)
-            {
-                Destroy(obj);
-            }
-        }
-    }
-
+    // reset
     public void ResetAll()
     {
-        foreach (GameObject obj in GameObject.FindGameObjectsWithTag("Obstacle"))
-        {
-            if (obj.transform.parent == null && obj.name == "Obstacle")
-                Destroy(obj);
-        }
-        foreach (GameObject obj in GameObject.FindGameObjectsWithTag("ScoreZone"))
-            Destroy(obj);
+        foreach (var p in platforms)
+            if (p != null) Destroy(p);
+        platforms.Clear();
+
         nextSpawnY = 10f;
-        lastFromLeft = false;
+
+        //move wall back to original starting pos
+        float lx = -(playAreaHalfWidth + wallThickness * 0.5f);
+        float rx = (playAreaHalfWidth + wallThickness * 0.5f);
+        for (int i = 0; i < 2; i++)
+        {
+            float y = i * wallSegH;
+            leftSegs[i].transform.position = new Vector3(lx, y, 0f);
+            rightSegs[i].transform.position = new Vector3(rx, y, 0f);
+        }
+
+        Physics2D.SyncTransforms();
     }
 
+    //sprite
     public static Sprite GetSquare()
     {
         if (_square != null) return _square;
