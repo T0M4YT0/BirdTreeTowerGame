@@ -6,19 +6,18 @@ public class ObstacleSpawner : MonoBehaviour
     [SerializeField] private Transform player;
 
     [Header("Spawning")]
-    [SerializeField] private float obstacleSpacing = 4.5f;   // vertical distance between obstacles
-    [SerializeField] private float spawnAhead = 30f;          // spawn this far above player
-    [SerializeField] private float despawnBelow = 20f;         // destroy this far below player
+    [SerializeField] private float obstacleSpacing = 5f;
+    [SerializeField] private float spawnAhead = 30f;
+    [SerializeField] private float despawnBelow = 20f;
 
-    [Header("Gap")]
-    [SerializeField] private float gapSize = 3.5f;           // vertical gap height (start)
-    [SerializeField] private float minGapSize = 2.0f;         // smallest gap at max difficulty
+    [Header("Gap (horizontal)")]
+    [SerializeField] private float gapWidth = 1.4f;        // how wide the gap is
+    [SerializeField] private float minGapWidth = 0.7f;
     [SerializeField] private float difficultyRampHeight = 200f;
-    [SerializeField] private float maxGapShift = 2.5f;        // how far the gap centre can move between obstacles
 
-    [Header("Barrier")]
-    [SerializeField] private float barrierWidth = 5f;         // wider than play area to be safe
-    [SerializeField] private float barrierBlockHeight = 12f;   // height of each solid block
+    [Header("Bar")]
+    [SerializeField] private float playAreaHalfWidth = 1.905f;
+    [SerializeField] private float barThickness = 0.35f;
 
     [Header("Biome Colours")]
     [SerializeField] private Color cityColour = new Color(0.35f, 0.35f, 0.4f);
@@ -28,14 +27,12 @@ public class ObstacleSpawner : MonoBehaviour
     [SerializeField] private Color spaceColour = new Color(0.5f, 0.7f, 0.9f);
 
     private float nextSpawnY;
-    private float lastGapCentreY;
 
     private static Sprite _square;
 
     private void Start()
     {
-        nextSpawnY = 8f;
-        lastGapCentreY = 4f; // roughly where the bird starts
+        nextSpawnY = 10f;
     }
 
     private void Update()
@@ -54,84 +51,83 @@ public class ObstacleSpawner : MonoBehaviour
 
     private void SpawnObstacle(float y)
     {
-        // Difficulty progress
         float progress = Mathf.Clamp01(y / difficultyRampHeight);
-        float gap = Mathf.Lerp(gapSize, minGapSize, progress);
+        float gap = Mathf.Lerp(gapWidth, minGapWidth, progress);
+        float fullWidth = playAreaHalfWidth * 2f;
 
-        // Shift the gap centre randomly but constrained
-        float shift = Random.Range(-maxGapShift, maxGapShift);
-        float gapCentre = lastGapCentreY + shift;
+        // Random gap centre position (horizontal)
+        float minGapX = -playAreaHalfWidth + gap / 2f + 0.05f;
+        float maxGapX = playAreaHalfWidth - gap / 2f - 0.05f;
+        float gapCentreX = Random.Range(minGapX, maxGapX);
 
-        // Keep gap reachable (within a reasonable band around current height)
-        // The gap centre should be near the obstacle's Y position
-        float minCentre = y - 2f;
-        float maxCentre = y + 2f;
-        gapCentre = Mathf.Clamp(y + shift * 0.3f, minCentre, maxCentre);
-        lastGapCentreY = gapCentre;
-
-        float gapBottom = gapCentre - gap / 2f;
-        float gapTop = gapCentre + gap / 2f;
+        float gapLeft = gapCentreX - gap / 2f;
+        float gapRight = gapCentreX + gap / 2f;
 
         Color colour = GetBiomeColour(y);
 
-        // Parent object
+        // Parent
         GameObject obstacle = new GameObject("Obstacle");
         obstacle.transform.position = new Vector3(0f, y, 0f);
 
-        // Bottom block (below the gap)
-        float bottomBlockTop = gapBottom;
-        float bottomBlockCentreY = bottomBlockTop - barrierBlockHeight / 2f;
-        CreateBlock(obstacle.transform, bottomBlockCentreY, colour);
+        // Left block: left wall to gap left edge
+        float leftWidth = gapLeft - (-playAreaHalfWidth);
+        if (leftWidth > 0.02f)
+        {
+            float centreX = -playAreaHalfWidth + leftWidth / 2f;
+            CreateBlock(obstacle.transform, centreX, y, leftWidth, colour);
+        }
 
-        // Top block (above the gap)
-        float topBlockBottom = gapTop;
-        float topBlockCentreY = topBlockBottom + barrierBlockHeight / 2f;
-        CreateBlock(obstacle.transform, topBlockCentreY, colour);
+        // Right block: gap right edge to right wall
+        float rightWidth = playAreaHalfWidth - gapRight;
+        if (rightWidth > 0.02f)
+        {
+            float centreX = gapRight + rightWidth / 2f;
+            CreateBlock(obstacle.transform, centreX, y, rightWidth, colour);
+        }
 
         // Score trigger in the gap
         GameObject scoreTrigger = new GameObject("ScoreZone");
         scoreTrigger.tag = "ScoreZone";
         scoreTrigger.transform.SetParent(obstacle.transform);
-        scoreTrigger.transform.position = new Vector3(0f, gapCentre, 0f);
+        scoreTrigger.transform.position = new Vector3(gapCentreX, y, 0f);
         BoxCollider2D scoreCol = scoreTrigger.AddComponent<BoxCollider2D>();
-        scoreCol.size = new Vector2(barrierWidth, gap * 0.3f);
+        scoreCol.size = new Vector2(gap * 0.5f, barThickness);
         scoreCol.isTrigger = true;
     }
 
-    private void CreateBlock(Transform parent, float centreY, Color colour)
+    private void CreateBlock(Transform parent, float x, float y, float width, Color colour)
     {
         GameObject block = new GameObject("Block");
         block.transform.SetParent(parent);
-        block.transform.position = new Vector3(0f, centreY, 0f);
+        block.transform.position = new Vector3(x, y, 0f);
+        block.transform.localScale = new Vector3(width, barThickness, 1f);
         block.tag = "Obstacle";
 
         SpriteRenderer sr = block.AddComponent<SpriteRenderer>();
         sr.sprite = GetSquare();
         sr.color = colour;
         sr.sortingLayerName = "Obstacles";
-        block.transform.localScale = new Vector3(barrierWidth, barrierBlockHeight, 1f);
 
         BoxCollider2D col = block.AddComponent<BoxCollider2D>();
         col.size = Vector2.one;
     }
 
-    private Color GetBiomeColour(float altitude)
+    private Color GetBiomeColour(float alt)
     {
-        if (altitude < 30f) return cityColour;
-        if (altitude < 45f) return Color.Lerp(cityColour, treesColour, (altitude - 30f) / 15f);
-        if (altitude < 75f) return treesColour;
-        if (altitude < 90f) return Color.Lerp(treesColour, skyColour, (altitude - 75f) / 15f);
-        if (altitude < 130f) return skyColour;
-        if (altitude < 145f) return Color.Lerp(skyColour, stormColour, (altitude - 130f) / 15f);
-        if (altitude < 200f) return stormColour;
-        if (altitude < 215f) return Color.Lerp(stormColour, spaceColour, (altitude - 200f) / 15f);
+        if (alt < 30f) return cityColour;
+        if (alt < 45f) return Color.Lerp(cityColour, treesColour, (alt - 30f) / 15f);
+        if (alt < 75f) return treesColour;
+        if (alt < 90f) return Color.Lerp(treesColour, skyColour, (alt - 75f) / 15f);
+        if (alt < 130f) return skyColour;
+        if (alt < 145f) return Color.Lerp(skyColour, stormColour, (alt - 130f) / 15f);
+        if (alt < 200f) return stormColour;
+        if (alt < 215f) return Color.Lerp(stormColour, spaceColour, (alt - 200f) / 15f);
         return spaceColour;
     }
 
     private void Cleanup()
     {
         float destroyBelow = player.position.y - despawnBelow;
-        // Find root obstacle objects by name
         foreach (GameObject obj in GameObject.FindGameObjectsWithTag("Obstacle"))
         {
             if (obj.transform.parent == null && obj.name == "Obstacle"
@@ -151,9 +147,7 @@ public class ObstacleSpawner : MonoBehaviour
         }
         foreach (GameObject obj in GameObject.FindGameObjectsWithTag("ScoreZone"))
             Destroy(obj);
-
-        nextSpawnY = 8f;
-        lastGapCentreY = 4f;
+        nextSpawnY = 10f;
     }
 
     public static Sprite GetSquare()
