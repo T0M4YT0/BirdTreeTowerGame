@@ -7,6 +7,7 @@ TagManager:
   - Obstacle
   - Fog
   - ScoreZone
+  - Wall
   layers:
   - Default
   - TransparentFX
