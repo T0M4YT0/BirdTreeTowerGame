@@ -2450,6 +2450,18 @@ PrefabInstance:
       propertyPath: m_Name
       value: Canvas+EventSystem
       objectReference: {fileID: 0}
+    - target: {fileID: 1043984861485474072, guid: 81e679d47b33c5449911ff511bedfd95, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3413410810857379048, guid: 81e679d47b33c5449911ff511bedfd95, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6833840714610269859, guid: 81e679d47b33c5449911ff511bedfd95, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 8283120514712916002, guid: 81e679d47b33c5449911ff511bedfd95, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
@@ -2488,6 +2500,10 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8283120514712916002, guid: 81e679d47b33c5449911ff511bedfd95, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8487240811423271499, guid: 81e679d47b33c5449911ff511bedfd95, type: 3}
+      propertyPath: m_IsActive
       value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
