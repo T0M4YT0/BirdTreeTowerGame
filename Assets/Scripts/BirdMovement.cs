@@ -8,14 +8,17 @@ public class PLayerMovement : MonoBehaviour
     public float Speed = 10f;
     public bool GoingRight;
 
-    [HideInInspector] public bool IsDead = false;
-    [HideInInspector] public bool Frozen = true;
-    [HideInInspector] public int Score = 0;
-    [HideInInspector] public float HighestY = 0f;
+    public bool IsDead = false;
+    public bool Frozen = true;
+    public int Score = 0;
+    public float HighestY = 0f;
+
+    private Vector3 startPos;
 
     private void Start()
     {
         _rigidbody = GetComponent<Rigidbody2D>();
+        startPos = transform.position;
         GoingRight = true;
     }
 
@@ -27,7 +30,7 @@ public class PLayerMovement : MonoBehaviour
             HighestY = transform.position.y;
     }
 
-    void OnJump()
+    public void OnJump()
     {
         if (IsDead || Frozen) return;
 
@@ -63,12 +66,6 @@ public class PLayerMovement : MonoBehaviour
         {
             Die();
         }
-
-        if (other.CompareTag("ScoreZone"))
-        {
-            Score++;
-            Destroy(other.gameObject);
-        }
     }
 
     public void Die()
@@ -77,6 +74,8 @@ public class PLayerMovement : MonoBehaviour
         IsDead = true;
         _rigidbody.linearVelocity = Vector2.zero;
         _rigidbody.gravityScale = 0f;
+
+        FindFirstObjectByType<GameOverController>().DisplayScore(Score);
     }
 
     public void Freeze()
@@ -98,18 +97,15 @@ public class PLayerMovement : MonoBehaviour
         }
     }
 
-    public void ResetPlayer(Vector3 startPos, float gravityScale = 1f)
+    public void ResetPlayer(float gravityScale = 1f)
     {
         transform.position = startPos;
         transform.rotation = Quaternion.identity;
-
         if (_rigidbody == null)
             _rigidbody = GetComponent<Rigidbody2D>();
-
         _rigidbody.linearVelocity = Vector2.zero;
         _rigidbody.angularVelocity = 0f;
         _rigidbody.gravityScale = 0f;
-
         GoingRight = true;
         IsDead = false;
         Frozen = true;

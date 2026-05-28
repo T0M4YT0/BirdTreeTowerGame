@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class ObstacleSpawner : MonoBehaviour
@@ -8,6 +9,7 @@ public class ObstacleSpawner : MonoBehaviour
 
     [Header("Play Area")]
     [SerializeField] private float playAreaHalfWidth = 1.905f;
+    [SerializeField] private Transform leftWallPos, rightWallPos;
 
     [Header("walls and platform settings")]
     [SerializeField] private float platformThickness = 0.35f;
@@ -29,6 +31,10 @@ public class ObstacleSpawner : MonoBehaviour
     [SerializeField] private Color skyColour = new Color(0.6f, 0.65f, 0.75f);
     [SerializeField] private Color stormColour = new Color(0.25f, 0.22f, 0.3f);
     [SerializeField] private Color spaceColour = new Color(0.5f, 0.7f, 0.9f);
+
+    [Header("sprites")]
+    [SerializeField] private Sprite wallSprite;
+    [SerializeField] private Sprite platformSprite;
 
     //two segments per side
     private GameObject[] leftSegs, rightSegs;
@@ -80,8 +86,8 @@ public class ObstacleSpawner : MonoBehaviour
         leftSRs = new SpriteRenderer[wallSegCount];
         rightSRs = new SpriteRenderer[wallSegCount];
 
-        float lx = -(playAreaHalfWidth + wallThickness * 0.5f);
-        float rx = (playAreaHalfWidth + wallThickness * 0.5f);
+        float lx = leftWallPos.position.x;
+        float rx = rightWallPos.position.x;
 
         for (int i = 0; i < wallSegCount; i++)
         {
@@ -98,16 +104,24 @@ public class ObstacleSpawner : MonoBehaviour
     private GameObject MakeWallSeg(string name, float x, float y)
     {
         GameObject go = new GameObject(name);
+        go.transform.SetParent(transform, false);
         go.transform.position = new Vector3(x, y, 0f);
-        go.transform.localScale = new Vector3(wallThickness, wallSegH, 1f);
 
         var sr = go.AddComponent<SpriteRenderer>();
-        sr.sprite = GetSquare();
+        sr.sprite = wallSprite != null ? wallSprite : GetSquare();
         sr.color = cityColour;
         sr.sortingLayerName = "Obstacles";
 
+        //scale sprite fills to wall thickness
+        Sprite s = sr.sprite;
+        float ppu = s.pixelsPerUnit;
+        float spriteWorldW = s.rect.width / ppu;
+        float spriteWorldH = s.rect.height / ppu;
+
+        go.transform.localScale = new Vector3(wallThickness / spriteWorldW, wallSegH / spriteWorldH, 1f);
+
         var col = go.AddComponent<BoxCollider2D>();
-        col.size = Vector2.one;
+        col.size = new Vector2(spriteWorldW, spriteWorldH);
 
         return go;
     }
@@ -142,16 +156,18 @@ public class ObstacleSpawner : MonoBehaviour
     {
         float progress = Mathf.Clamp01(y / difficultyRampHeight);
 
-        //randomly pick a side
         bool fromLeft = Random.value < 0.5f;
 
-        //wider platforms as difficulty increases
-        float minW = Mathf.Lerp(0.4f, 0.6f, progress) * playAreaHalfWidth;
-        float maxW = Mathf.Lerp(0.6f, 0.9f, progress) * playAreaHalfWidth;
+        float lx = leftWallPos.position.x + wallThickness * 0.5f;//inner left
+        float rx = rightWallPos.position.x - wallThickness * 0.5f;//inner right
+        float innerWidth = rx - lx;//width between walls
+
+        float minW = Mathf.Lerp(0.4f, 0.6f, progress) * (innerWidth * 0.5f);
+        float maxW = Mathf.Lerp(0.6f, 0.9f, progress) * (innerWidth * 0.5f);
         float w = Random.Range(minW, maxW);
 
-        //platform flush to chosen wall
-        float x = fromLeft ? -playAreaHalfWidth + w * 0.5f : playAreaHalfWidth - w * 0.5f;
+        // flush to the inner edge of the chosen wall
+        float x = fromLeft ? lx + w * 0.5f : rx - w * 0.5f;
 
         Color colour = GetBiomeColour(y);
 
@@ -161,26 +177,25 @@ public class ObstacleSpawner : MonoBehaviour
         p.tag = "Obstacle";
 
         var sr = p.AddComponent<SpriteRenderer>();
-        sr.sprite = GetSquare();
+        sr.sprite = platformSprite != null ? platformSprite : GetSquare();
         sr.color = colour;
         sr.sortingLayerName = "Obstacles";
 
         var col = p.AddComponent<BoxCollider2D>();
         col.size = Vector2.one;
 
-        // score zone sits in the open gap beside the platform
-        float gapW = playAreaHalfWidth * 2f - w;
-        float gapX = fromLeft
-            ? playAreaHalfWidth - gapW * 0.5f
-            : -playAreaHalfWidth + gapW * 0.5f;
+        // score zone in the open gap
+        float gapW = innerWidth - w;
+        float gapX = fromLeft ? rx - gapW * 0.5f : lx + gapW * 0.5f;
 
         GameObject zone = new GameObject("ScoreZone");
         zone.tag = "ScoreZone";
-        zone.transform.SetParent(p.transform, true);
+        zone.transform.SetParent(transform, false);
         zone.transform.position = new Vector3(gapX, y, 0f);
         var zCol = zone.AddComponent<BoxCollider2D>();
         zCol.size = new Vector2(gapW * 0.8f, platformThickness);
         zCol.isTrigger = true;
+        zone.transform.AddComponent<ScoreTrigger>();
 
         platforms.Add(p);
     }
@@ -208,10 +223,10 @@ public class ObstacleSpawner : MonoBehaviour
 
         nextSpawnY = 10f;
 
-        //move wall back to original starting pos
-        float lx = -(playAreaHalfWidth + wallThickness * 0.5f);
-        float rx = (playAreaHalfWidth + wallThickness * 0.5f);
-        for (int i = 0; i < 2; i++)
+        float lx = leftWallPos.position.x;
+        float rx = rightWallPos.position.x;
+
+        for (int i = 0; i < wallSegCount; i++)
         {
             float y = i * wallSegH;
             leftSegs[i].transform.position = new Vector3(lx, y, 0f);

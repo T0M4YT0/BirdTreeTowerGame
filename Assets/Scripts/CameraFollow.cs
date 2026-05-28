@@ -6,10 +6,12 @@ public class CameraFollow : MonoBehaviour
     [SerializeField] private float smoothSpeed = 5f;
     [SerializeField] private float offsetY = 4f;
 
+    private Vector3 startPos;
     private float highestY;
 
     private void Start()
     {
+        startPos = transform.position;
         highestY = transform.position.y;
     }
 
@@ -31,5 +33,11 @@ public class CameraFollow : MonoBehaviour
     {
         highestY = startY;
         transform.position = new Vector3(0f, startY, -10f);
+    }
+
+    public void ResetCamera()
+    {
+        highestY = startPos.y;
+        transform.position = new Vector3(0f, startPos.y, -10f);
     }
 }

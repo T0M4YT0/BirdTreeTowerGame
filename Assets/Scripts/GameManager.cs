@@ -26,6 +26,11 @@ public class GameManager : MonoBehaviour
 
     public State CurrentState => state;
 
+    public State SetState 
+    {
+        set => state = value;
+    }
+
     private void Start()
     {
         highScore = PlayerPrefs.GetInt("HighScore", 0);
@@ -58,7 +63,7 @@ public class GameManager : MonoBehaviour
     private void GoToTitle()
     {
         state = State.Title;
-        player.ResetPlayer(playerStart, playerGravityScale);
+        player.ResetPlayer(playerGravityScale);
         spawner.ResetAll();
         fog.ResetFog();
         cam.ResetCamera(cameraStartY);

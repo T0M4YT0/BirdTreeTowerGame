@@ -876,6 +876,7 @@ GameObject:
   - component: {fileID: 2268910607128992814}
   - component: {fileID: 4362871215648397912}
   - component: {fileID: 2930541505403538863}
+  - component: {fileID: 6377725461573075742}
   m_Layer: 5
   m_Name: Canvas
   m_TagString: Untagged
@@ -983,6 +984,21 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a4c7073acd0cd9a489e89506b16d1ce0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MainMenu
+--- !u!114 &6377725461573075742
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3146778975807008532}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ee413176520439c469fcfd91c1c20ac1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::GameOverController
+  scoreTxt: {fileID: 5690257917693095400}
+  gameUI: {fileID: 9211284281418201287}
+  gameOverScreen: {fileID: 8487240811423271499}
 --- !u!1 &3269034271693347660
 GameObject:
   m_ObjectHideFlags: 0
@@ -1150,6 +1166,7 @@ GameObject:
   - component: {fileID: 9211284281418201287}
   - component: {fileID: 5074750386737293351}
   - component: {fileID: 4228911666242969424}
+  - component: {fileID: 67734488647656255}
   m_Layer: 5
   m_Name: GameScreen
   m_TagString: Untagged
@@ -1216,6 +1233,19 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!114 &67734488647656255
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3413410810857379048}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5b5a8ad398c47a840b100f38b9373616, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ScoreDisplay
+  scoreText: {fileID: 669427821229350243}
 --- !u!1 &3617145370972528087
 GameObject:
   m_ObjectHideFlags: 0
@@ -1764,7 +1794,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 8715234460783158282}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 6377725461573075742}
+        m_TargetAssemblyTypeName: GameOverController, Assembly-CSharp
+        m_MethodName: RestartGame
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!1 &4503414118729695085
 GameObject:
   m_ObjectHideFlags: 0
