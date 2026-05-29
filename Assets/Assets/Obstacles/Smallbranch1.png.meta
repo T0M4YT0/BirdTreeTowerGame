@@ -1,13 +1,10 @@
 fileFormatVersion: 2
-guid: 4e82d5c2a177ac64db79b6de47f5fc2f
+guid: e326906ec3abe434e8ba57d5ad1ae752
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -7550125064241815369
-    second: treetrunk_0
-  - first:
-      213: -5799868158354409269
-    second: treetrunk_1
+      213: 2154971201062580859
+    second: Smallbranch1_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -40,7 +37,7 @@ TextureImporter:
   maxTextureSize: 2048
   textureSettings:
     serializedVersion: 2
-    filterMode: 0
+    filterMode: 1
     aniso: 1
     mipBias: 0
     wrapU: 1
@@ -49,13 +46,13 @@ TextureImporter:
   nPOTScale: 0
   lightmap: 0
   compressionQuality: 50
-  spriteMode: 1
+  spriteMode: 2
   spriteExtrude: 1
   spriteMeshType: 1
   alignment: 0
   spritePivot: {x: 0.5, y: 0.5}
   spritePixelsToUnits: 100
-  spriteBorder: {x: 438, y: 0, z: 461, w: 0}
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
   spriteGenerateFallbackPhysicsShape: 1
   alphaUsage: 1
   alphaIsTransparency: 1
@@ -78,7 +75,7 @@ TextureImporter:
     maxTextureSize: 2048
     resizeAlgorithm: 0
     textureFormat: -1
-    textureCompression: 0
+    textureCompression: 1
     compressionQuality: 50
     crunchedCompression: 0
     allowsAlphaSplitting: 0
@@ -155,45 +152,23 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: treetrunk_0
+      name: Smallbranch1_0
       rect:
         serializedVersion: 2
-        x: 371
+        x: 0
         y: 0
-        width: 1002
-        height: 1800
+        width: 167
+        height: 67
       alignment: 0
-      pivot: {x: 0.5, y: 0.5}
+      pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 7b0e710a141983790800000000000000
-      internalID: -7550125064241815369
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: treetrunk_1
-      rect:
-        serializedVersion: 2
-        x: 1609
-        y: 187
-        width: 51
-        height: 130
-      alignment: 0
-      pivot: {x: 0.5, y: 0.5}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: bc8bf2593aab28fa0800000000000000
-      internalID: -5799868158354409269
+      spriteID: b72388cc3eef7ed10800000000000000
+      internalID: 2154971201062580859
       vertices: []
       indices: 
       edges: []
@@ -202,8 +177,8 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 5e97eb03825dee720800000000000000
-    internalID: 1537655665
+    spriteID: 
+    internalID: 0
     vertices: []
     indices: 
     edges: []
@@ -212,8 +187,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      treetrunk_0: -7550125064241815369
-      treetrunk_1: -5799868158354409269
+      Smallbranch1_0: 2154971201062580859
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
