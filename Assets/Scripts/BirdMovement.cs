@@ -112,4 +112,10 @@ public class PLayerMovement : MonoBehaviour
         Score = 0;
         HighestY = 0f;
     }
+
+    public void OnQuit()
+    {
+        Debug.Log("Quit");
+        Application.Quit();
+    }
 }
