@@ -161,24 +161,24 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ObstacleSpawner
   player: {fileID: 95062097}
-  playAreaHalfWidth: 1.905
+  playAreaHalfWidth: 1
   leftWallPos: {fileID: 1485323965}
   rightWallPos: {fileID: 251135093}
   platformThickness: 0.35
-  wallThickness: 0.35
+  wallThickness: 2
   wallSegCount: 20
   wallSegH: 4
   platformSpacing: 5
   spawnAhead: 30
   despawnBelow: 20
   difficultyRampHeight: 200
-  cityColour: {r: 0.35, g: 0.35, b: 0.4, a: 1}
-  treesColour: {r: 0.2, g: 0.45, b: 0.15, a: 1}
-  skyColour: {r: 0.6, g: 0.65, b: 0.75, a: 1}
-  stormColour: {r: 0.25, g: 0.22, b: 0.3, a: 1}
-  spaceColour: {r: 0.5, g: 0.7, b: 0.9, a: 1}
-  wallSprite: {fileID: 0}
-  platformSprite: {fileID: 0}
+  cityColour: {r: 1, g: 1, b: 1, a: 1}
+  treesColour: {r: 1, g: 1, b: 1, a: 1}
+  skyColour: {r: 1, g: 1, b: 1, a: 1}
+  stormColour: {r: 1, g: 1, b: 1, a: 1}
+  spaceColour: {r: 1, g: 1, b: 1, a: 1}
+  wallSprite: {fileID: 21300000, guid: 4e82d5c2a177ac64db79b6de47f5fc2f, type: 3}
+  platformSprite: {fileID: 3320676708204767084, guid: 23ebe039594876049ad9614a2d5d03a0, type: 3}
 --- !u!4 &75211600
 Transform:
   m_ObjectHideFlags: 0
@@ -668,7 +668,7 @@ Transform:
   m_GameObject: {fileID: 251135092}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 1.47, y: 4.01, z: 0}
+  m_LocalPosition: {x: 1.2, y: 4.01, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1743,7 +1743,7 @@ Transform:
   m_GameObject: {fileID: 1485323964}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -1.66, y: 4.01, z: 0}
+  m_LocalPosition: {x: -1.22, y: 4.01, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
